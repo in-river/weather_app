@@ -1,17 +1,17 @@
 # weather_app
 
-A new Flutter project.
+A simple Flutter weather app that fetches current weather data from OpenWeatherMap and displays it on screen.
 
-## Getting Started
+## Setup
 
-This project is a starting point for a Flutter application.
+1. Copy `.env.example` to `.env`.
+2. Open `.env` and set `OPENWEATHER_API_KEY=YOUR_API_KEY`.
+3. Run `flutter pub get`.
+4. Launch the app with `flutter run`.
 
-A few resources to get you started if this is your first Flutter project:
+## Notes
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- The app currently loads weather for `Kasukabe,JP`.
+- The `.env` file is ignored by Git, so your APIキーは公開されません。
+- If the API key is missing or the network request fails, the app shows an error message and allows retrying.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
