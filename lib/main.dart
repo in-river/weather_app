@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'weather_api.dart';
-import 'models/weather.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +31,7 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  late Future<Weather> _weatherFuture;
+  late Future<WeatherResponse> _weatherFuture;
   final WeatherApi _weatherApi = WeatherApi();
   static const String _cityQuery = 'Kasukabe,JP';
 
@@ -52,7 +51,7 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('天気予報')),
-      body: FutureBuilder<Weather>(
+      body: FutureBuilder<WeatherResponse>(
         future: _weatherFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -88,8 +87,9 @@ class _WeatherPageState extends State<WeatherPage> {
             );
           }
 
-          final weather = snapshot.data!;
-          return Center(
+          final response = snapshot.data!;
+          final weather = response.weather;
+          return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -97,24 +97,72 @@ class _WeatherPageState extends State<WeatherPage> {
                 children: [
                   Text(
                     weather.cityName,
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Icon(_weatherIcon(weather.iconCode), size: 100),
                   const SizedBox(height: 20),
                   Text(
                     weather.temperatureText,
-                    style: const TextStyle(fontSize: 56, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 56,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     weather.description,
                     style: const TextStyle(fontSize: 24),
                   ),
                   const SizedBox(height: 30),
-                  Text('湿度 ${weather.humidity}%', style: const TextStyle(fontSize: 18)),
+                  Text(
+                    '湿度 ${weather.humidity}%',
+                    style: const TextStyle(fontSize: 18),
+                  ),
                   const SizedBox(height: 8),
-                  Text('降水量 ${weather.rainText}', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 24),
+                  Text(
+                    '降水量 ${weather.rainText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '体感温度 ${weather.feelsLikeText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '風速 ${weather.windSpeedText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '天気状態 ${weather.weatherMain} / ${weather.description}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '取得地点 ${weather.coordinatesText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'API地点のタイムゾーン ${weather.timezoneText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'APIデータ更新時刻 ${weather.updatedAtText}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'アプリ取得時刻 ${response.fetchedAtText} (端末時刻)',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _refreshWeather,
                     child: const Text('最新情報に更新'),
@@ -133,7 +181,9 @@ class _WeatherPageState extends State<WeatherPage> {
     if (code.startsWith('01')) {
       return Icons.wb_sunny;
     }
-    if (code.startsWith('02') || code.startsWith('03') || code.startsWith('04')) {
+    if (code.startsWith('02') ||
+        code.startsWith('03') ||
+        code.startsWith('04')) {
       return Icons.cloud;
     }
     if (code.startsWith('09') || code.startsWith('10')) {
