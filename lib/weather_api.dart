@@ -21,6 +21,28 @@ class WeatherResponse {
 
 class WeatherApi {
   Future<WeatherResponse> fetchCurrentWeather(String city) async {
+    return _fetchCurrentWeather(
+      <String, String>{
+        'q': city,
+      },
+    );
+  }
+
+  Future<WeatherResponse> fetchCurrentWeatherByCoordinates(
+    double lat,
+    double lon,
+  ) async {
+    return _fetchCurrentWeather(
+      <String, String>{
+        'lat': lat.toString(),
+        'lon': lon.toString(),
+      },
+    );
+  }
+
+  Future<WeatherResponse> _fetchCurrentWeather(
+    Map<String, String> locationParams,
+  ) async {
     final apiKey = dotenv.env[_openWeatherApiKeyName] ?? '';
     if (apiKey.isEmpty) {
       throw StateError(
@@ -32,7 +54,7 @@ class WeatherApi {
       _openWeatherBaseUrl,
       '/data/2.5/weather',
       <String, String>{
-        'q': city,
+        ...locationParams,
         'appid': apiKey,
         'units': 'metric',
         'lang': 'ja',
