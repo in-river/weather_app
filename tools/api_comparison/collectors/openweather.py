@@ -40,23 +40,39 @@ def _normalize_openweather_payload(
     weather = payload.get("weather") or []
     main = payload.get("main") or {}
     wind = payload.get("wind") or {}
-    rain = payload.get("rain") or {}
-    snow = payload.get("snow") or {}
-
     temperature = _safe_float(main.get("temp"))
     humidity = _safe_float(main.get("humidity"))
     wind_speed = _safe_float(wind.get("speed"))
 
-    precipitation_value = 0.0
+    precipitation_value = None
     precipitation_unit = "mm"
     precipitation_window_min = 60
 
-    if isinstance(rain, dict):
-        precipitation_value = _safe_float(rain.get("1h"), 0.0) or 0.0
-        precipitation_window_min = 60
-    elif isinstance(snow, dict):
-        precipitation_value = _safe_float(snow.get("1h"), 0.0) or 0.0
-        precipitation_window_min = 60
+    if success:
+        precipitation_values: list[float] = []
+        precipitation_is_missing = False
+
+        for field_name in ("rain", "snow"):
+            if field_name not in payload:
+                continue
+
+            precipitation = payload[field_name]
+            if not isinstance(precipitation, dict) or "1h" not in precipitation:
+                precipitation_is_missing = True
+                break
+
+            value = _safe_float(precipitation["1h"])
+            if value is None:
+                precipitation_is_missing = True
+                break
+            precipitation_values.append(value)
+
+        if not precipitation_is_missing:
+            precipitation_value = sum(precipitation_values, 0.0)
+
+    rain_detected = None
+    if precipitation_value is not None:
+        rain_detected = 1 if precipitation_value > 0 else 0
 
     source_time_value = payload.get("dt")
     source_time = None
@@ -78,7 +94,7 @@ def _normalize_openweather_payload(
         "precipitation_value": precipitation_value,
         "precipitation_unit": precipitation_unit,
         "precipitation_window_min": precipitation_window_min,
-        "rain_detected": 1 if precipitation_value > 0 else 0,
+        "rain_detected": rain_detected,
         "response_ms": response_ms,
         "success": 1 if success else 0,
         "http_status": http_status,
