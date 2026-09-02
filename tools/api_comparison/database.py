@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 
 DatabasePath = Union[str, Path]
@@ -13,6 +14,89 @@ def get_default_db_path() -> Path:
     data_dir = base_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir / "weather_validation.db"
+
+
+def _normalize_record(record: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(record)
+    if "raw_json" in normalized and normalized["raw_json"] is not None and not isinstance(normalized["raw_json"], str):
+        normalized["raw_json"] = json.dumps(normalized["raw_json"], ensure_ascii=False, separators=(",", ":"))
+    return normalized
+
+
+def insert_observation(db_path: DatabasePath | None, record: dict[str, Any]) -> int:
+    resolved_path = Path(db_path) if db_path is not None else get_default_db_path()
+    normalized = _normalize_record(record)
+
+    connection = sqlite3.connect(resolved_path)
+    try:
+        cursor = connection.execute(
+            """
+            INSERT INTO observations (
+                target_time,
+                fetched_at,
+                source_time,
+                source,
+                api_version,
+                city,
+                point_role,
+                station_id,
+                lat,
+                lon,
+                temperature_c,
+                humidity_pct,
+                wind_speed_ms,
+                precipitation_value,
+                precipitation_unit,
+                precipitation_window_min,
+                rain_detected,
+                temp_quality,
+                humidity_quality,
+                wind_quality,
+                precip_quality,
+                http_status,
+                response_ms,
+                success,
+                error_type,
+                endpoint_sanitized,
+                raw_json,
+                collector_version
+            ) VALUES (
+                :target_time,
+                :fetched_at,
+                :source_time,
+                :source,
+                :api_version,
+                :city,
+                :point_role,
+                :station_id,
+                :lat,
+                :lon,
+                :temperature_c,
+                :humidity_pct,
+                :wind_speed_ms,
+                :precipitation_value,
+                :precipitation_unit,
+                :precipitation_window_min,
+                :rain_detected,
+                :temp_quality,
+                :humidity_quality,
+                :wind_quality,
+                :precip_quality,
+                :http_status,
+                :response_ms,
+                :success,
+                :error_type,
+                :endpoint_sanitized,
+                :raw_json,
+                :collector_version
+            )
+            """,
+            normalized,
+        )
+        connection.commit()
+        return int(cursor.lastrowid)
+    finally:
+        connection.close()
 
 
 def init_database(db_path: DatabasePath | None = None) -> Path:
