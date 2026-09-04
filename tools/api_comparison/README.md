@@ -24,9 +24,9 @@ DryNowに適したAPIを検証することを目的としています。
 - データの取得成功率
 - データの鮮度
 
-## 現在の実装
+## 現在の実装・運用状況
 
-Phase 1-Bの準備として、以下の基盤を作成しています。
+Phase 1-Bとして、以下の収集基盤を実装・運用しています。
 
 - 比較地点の定義
 - SQLiteデータベースの初期化
@@ -35,6 +35,14 @@ Phase 1-Bの準備として、以下の基盤を作成しています。
 - 取得データ・ログをGit管理から除外する設定
 - OpenWeatherとOpen-Meteoの現在値取得
 - 5都市のprimary地点を対象にしたSQLite保存
+- 1回につき5都市 × 2API = 10レコードの保存
+- Windows Task Schedulerによる毎時05分・35分の自動実行
+- OpenWeather、Open-Meteo、`target_time`丸めの単体テスト（18 tests / OK）
+
+実API取得とSQLite保存を確認済みです。また、16:35のTask Scheduler自動実行で、
+全レコードが`target_time=16:30`となる10レコードの保存を確認しています。
+
+Visual Crossing、Tomorrow.io、AMeDAS収集は未実装です。
 
 APIから取得したデータは、比較用に整形した値だけでなく、
 元のレスポンスも保存できる構成にしています。
@@ -130,7 +138,5 @@ WakeToRunを有効にしても、PCの電源が完全に切れている場合は
 
 ## 今後
 
-各APIの現在値取得処理を順番に実装し、
-同時刻のAMeDAS観測値と比較できるデータを蓄積していきます。
-
-Visual CrossingとTomorrow.ioの現在値取得、AMeDASとの比較処理を順番に実装します。
+現在の自動収集を継続しながら、Visual CrossingとTomorrow.ioの現在値取得、
+AMeDAS収集、同時刻データの比較処理を順番に実装します。

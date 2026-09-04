@@ -76,6 +76,22 @@ DryNowでは、取得した気象データをもとに外干し判定や乾燥�
 
 必要に応じて取得方法やデータソースの変更も検討する。
 
+### Phase 1-Bの現在地
+
+現在は、各APIがリアルタイムに返した値を自前で蓄積する比較基盤を運用している。
+
+実装・確認済み：
+
+* OpenWeatherとOpen-MeteoのCurrent値取得
+* 熊谷・東京・静岡・大阪・松山の5都市のprimary地点
+* 5都市×2API、1回10レコードのSQLite保存
+* raw JSONと正規化値の保持
+* Windows Task Schedulerによる毎時05分・35分の30分自動収集
+* 全都市・全APIで共通の`target_time`を使用
+* OpenWeather、Open-Meteo、時刻丸めの単体テスト
+
+Visual Crossing、Tomorrow.io、AMeDAS収集と比較分析は未実装である。また、外干し判定と乾燥時間推定もまだ実装していない。
+
 ---
 
 ## 🗺 Development Roadmap
@@ -108,16 +124,20 @@ DryNowでは、取得した気象データをもとに外干し判定や乾燥�
 
 * Flutter
 * Dart
+* Python
+* SQLite
 * OpenWeather API
+* Open-Meteo API
 * HTTP通信
 * JSON
 * dotenv
+* Windows Task Scheduler
 * Git / GitHub
 
 ---
 
 ## 📍現在のステータス
 
-**Weather App v1 完了 → DryNowとして開発開始**
+**Weather App v1 完了 → DryNow Phase 1-Bのデータ収集基盤を運用中**
 
-現在はPhase 1「気象データの信頼性検証」に取り組んでいる。
+現在はPhase 1「気象データの信頼性検証」として、5都市のCurrent API値を30分ごとに蓄積している。

@@ -12,7 +12,7 @@
 
 - プロジェクト概要とロードマップは`README.md`を確認する。
 - 気象データ検証の経緯は`docs/WEATHER_DATA_VALIDATION.md`を確認する。
-- API比較基盤の方針は`docs/DRYNOW_API_COMPARISON_DESIGN_v1.0.md`を確認する。
+- API比較基盤の現行方針は`docs/DRYNOW_API_COMPARISON_DESIGN_v1.1.md`を確認する。v1.0は当初設計の履歴として参照する。
 - Pythonツール固有の説明は`tools/api_comparison/README.md`を確認する。
 - Flutter変更時は`lib/main.dart`、`lib/weather_api.dart`、`lib/models/weather.dart`を確認する。
 - Python変更時は対象collectorに加え、`collect_current.py`、`database.py`、`locations.py`も確認する。
