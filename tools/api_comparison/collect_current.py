@@ -11,6 +11,11 @@ from collectors.open_meteo import fetch_current_weather as fetch_open_meteo
 from collectors.openweather import fetch_current_weather as fetch_openweather
 from collectors.tomorrow_io import fetch_current_weather as fetch_tomorrow_io
 from collectors.visual_crossing import fetch_current_weather as fetch_visual_crossing
+from collectors.amedas import (
+    failure_from_fetch_error,
+    fetch_current_map as fetch_amedas_map,
+    normalize_current_weather as normalize_amedas_weather,
+)
 
 
 def _floor_target_time(current_time: datetime) -> datetime:
@@ -87,7 +92,47 @@ def main() -> None:
     visual_crossing_api_key = get_api_key("VISUAL_CROSSING_API_KEY")
     tomorrow_api_key = get_api_key("TOMORROW_API_KEY")
 
+    try:
+        amedas_map = fetch_amedas_map(target_time=target_time)
+        amedas_error = None
+    except Exception as exc:
+        amedas_map = None
+        amedas_error = exc
+
     for point in primary_points:
+        if amedas_map is not None:
+            _collect_and_save(
+                "amedas",
+                point,
+                target_time,
+                lambda point=point: normalize_amedas_weather(
+                    map_response=amedas_map,
+                    station_id=point.station_id,
+                    city=point.city,
+                    point_role=point.point_role,
+                    lat=point.lat,
+                    lon=point.lon,
+                    target_time=target_time,
+                ),
+                db_path,
+            )
+        else:
+            _collect_and_save(
+                "amedas",
+                point,
+                target_time,
+                lambda point=point: failure_from_fetch_error(
+                    exc=amedas_error,
+                    station_id=point.station_id,
+                    city=point.city,
+                    point_role=point.point_role,
+                    lat=point.lat,
+                    lon=point.lon,
+                    target_time=target_time,
+                ),
+                db_path,
+            )
+
         if openweather_api_key:
             _collect_and_save(
                 "openweather",

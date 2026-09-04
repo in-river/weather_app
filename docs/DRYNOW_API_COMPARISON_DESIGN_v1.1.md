@@ -25,15 +25,15 @@ v1.0は当初設計の履歴として変更せず保持する。本書に未実�
 - OpenWeather Current Weather API
 - Open-Meteo Forecast API `current`
 - 5都市の`primary`地点を対象とする収集
-- 1回につき5都市 × 2API = 10レコード
+- 1回につき5都市 × 5ソース = 25レコード
 - SQLite `observations`テーブルへの正規化値・raw JSON保存
 - HTTPエラー、ネットワークエラー、JSONデコードエラーの記録
 - Windows Task Schedulerによる30分間隔の自動実行
 - stdout・stderrのログ保存
-- OpenWeather・Open-Meteoの正規化テスト
+- API collector・AMeDASの正規化テスト
 - `target_time`の30分丸めテスト
-- 18 tests / OK
-- 16:35の自動実行で`target_time=16:30`の10レコード保存
+- 49 tests / OK
+- 16:35の自動実行で`target_time=16:30`の25レコード保存
 
 ### 未実装
 
@@ -67,19 +67,20 @@ v1.0は当初設計の履歴として変更せず保持する。本書に未実�
 | open_meteo | Forecast API `current` | 実装済み・自動収集中 | APIキー不要 |
 | visual_crossing | Timeline Current Conditions | 未実装 | APIキー必須予定 |
 | tomorrow_io | Realtime Weather API | 未実装 | APIキー必須予定 |
-| amedas | 気象庁観測値 | 未実装 | 不要 |
+| amedas | 気象庁AMeDAS全国マップ | 実装済み・自動収集中 | 不要 |
 
 ## 6. 1回の収集サイクル
 
 1. 実行開始時刻から`target_time`を1回だけ生成する。
 2. JSTへ変換し、00分または30分の境界へ切り捨てる。
 3. 5都市の`primary`地点を読み込む。
-4. 各都市についてOpenWeatherとOpen-Meteoを逐次実行する。
-5. collectorが返した正規化値とraw JSONを`observations`へ保存する。
-6. 取得・保存失敗があっても、残りの都市・APIを継続する。
-7. 各レコードの取得値、成功状態、保存状態を標準出力へ記録する。
+4. AMeDAS全国マップを1回取得し、各都市の観測所を正規化する。
+5. 各都市についてOpenWeather、Open-Meteo、Visual Crossing、Tomorrow.ioを逐次実行する。
+6. collectorが返した正規化値とraw JSONを`observations`へ保存する。
+7. 取得・保存失敗があっても、残りの都市・APIを継続する。
+8. 各レコードの取得値、成功状態、保存状態を標準出力へ記録する。
 
-通常は1サイクル10レコードとなる。APIキー欠損、予期しない取得例外、SQLite一意制約違反などがある場合は10件未満になる可能性がある。
+通常は1サイクル25レコードとなる。APIキー欠損、予期しない取得例外、SQLite一意制約違反などがある場合は25件未満になる可能性がある。
 
 ## 7. タイムスタンプ設計
 
@@ -159,9 +160,9 @@ Windows Task Schedulerから`run_current_collection.ps1`を呼び出す。
 - OpenWeather降水正規化: 8件
 - Open-Meteo正規化: 6件
 - `target_time`30分丸め: 4件
-- 合計: 18 tests / OK
+- AMeDAS時刻フォールバックを含む合計: 49 tests / OK
 
-実運用確認として、Task Schedulerの16:35実行で5都市 × 2APIを取得し、共通の`target_time=16:30`として10レコードがSQLiteへ保存されたことを確認済みである。
+実運用確認として、Task Schedulerの16:35実行で5都市 × 5ソースを取得し、共通の`target_time=16:30`として25レコードがSQLiteへ保存されたことを確認済みである。
 
 ## 13. 次の実装候補
 
@@ -169,8 +170,7 @@ Windows Task Schedulerから`run_current_collection.ps1`を呼び出す。
 2. Visual Crossing collector
 3. Tomorrow.io collector
 4. `wind`地点を含めた収集範囲の検討
-5. AMeDAS collector
-6. API値とAMeDAS値の時刻結合・評価
+5. API値とAMeDAS値の時刻結合・評価
 
 実装順序はAPI利用条件や収集データの状況に応じて見直す。未実装項目を完成扱いしない。
 

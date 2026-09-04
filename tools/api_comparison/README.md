@@ -35,14 +35,14 @@ Phase 1-Bとして、以下の収集基盤を実装・運用しています。
 - 取得データ・ログをGit管理から除外する設定
 - OpenWeatherとOpen-Meteoの現在値取得
 - 5都市のprimary地点を対象にしたSQLite保存
-- 1回につき5都市 × 2API = 10レコードの保存
+- 1回につき5都市 × 5ソース = 25レコードの保存
 - Windows Task Schedulerによる毎時05分・35分の自動実行
-- OpenWeather、Open-Meteo、`target_time`丸めの単体テスト（18 tests / OK）
+- API collector、AMeDAS、`target_time`丸めの単体テスト（49 tests / OK）
 
 実API取得とSQLite保存を確認済みです。また、16:35のTask Scheduler自動実行で、
-全レコードが`target_time=16:30`となる10レコードの保存を確認しています。
+全レコードが`target_time=16:30`となる25レコードの保存を確認しています。
 
-Visual Crossing、Tomorrow.io、AMeDAS収集は未実装です。
+AMeDAS収集は実装済みです。Visual CrossingとTomorrow.ioは未実装です。
 
 APIから取得したデータは、比較用に整形した値だけでなく、
 元のレスポンスも保存できる構成にしています。
@@ -139,4 +139,4 @@ WakeToRunを有効にしても、PCの電源が完全に切れている場合は
 ## 今後
 
 現在の自動収集を継続しながら、Visual CrossingとTomorrow.ioの現在値取得、
-AMeDAS収集、同時刻データの比較処理を順番に実装します。
+同時刻データの比較処理を順番に実装します。
