@@ -68,6 +68,8 @@ $settingsParameters = @{
     MultipleInstances = "IgnoreNew"
     RunOnlyIfNetworkAvailable = $true
     ExecutionTimeLimit = (New-TimeSpan -Minutes 30)
+    AllowStartIfOnBatteries = $true
+    DontStopIfGoingOnBatteries = $true
 }
 if ($WakeToRun.IsPresent) {
     $settingsParameters["WakeToRun"] = $true
