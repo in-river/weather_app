@@ -1,4 +1,4 @@
-# Miscellaneous
+# その他
 *.class
 *.log
 *.pyc
@@ -12,18 +12,16 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# IntelliJ 関連
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code の設定は、必要な場合のみ追跡対象にするためコメント化
 #.vscode/
 
-# Flutter/Dart/Pub related
+# Flutter / Dart / Pub 関連
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
@@ -31,16 +29,20 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 .env
+**/__pycache__/
+/tools/api_comparison/data/*.db
+/tools/api_comparison/data/*.db-*
+/tools/api_comparison/logs/*.log
 /build/
 /coverage/
 
-# Symbolication related
+# シンボル化関連
 app.*.symbols
 
-# Obfuscation related
+# 難読化関連
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android Studio のビルド成果物
 /android/app/debug
 /android/app/profile
 /android/app/release
