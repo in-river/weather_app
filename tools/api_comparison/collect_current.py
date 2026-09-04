@@ -11,6 +11,13 @@ from collectors.open_meteo import fetch_current_weather as fetch_open_meteo
 from collectors.openweather import fetch_current_weather as fetch_openweather
 
 
+def _floor_target_time(current_time: datetime) -> datetime:
+    jst = timezone(timedelta(hours=9))
+    current_jst = current_time.astimezone(jst)
+    target_minute = 0 if current_jst.minute < 30 else 30
+    return current_jst.replace(minute=target_minute, second=0, microsecond=0)
+
+
 def _print_record(record: dict[str, Any], *, save_status: str) -> None:
     print(
         f"source={record['source']} save_status={save_status} "
@@ -54,11 +61,7 @@ def _collect_and_save(
 
 def main() -> None:
     # 比較キーがずれないよう、実行開始時に一度だけ生成して全収集へ渡す。
-    target_time = datetime.now(timezone(timedelta(hours=9))).replace(
-        minute=0,
-        second=0,
-        microsecond=0,
-    )
+    target_time = _floor_target_time(datetime.now(timezone.utc))
     primary_points = [
         point for point in get_locations() if point.point_role == "primary"
     ]
