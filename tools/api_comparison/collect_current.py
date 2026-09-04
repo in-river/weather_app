@@ -9,6 +9,8 @@ from database import init_database, insert_observation
 from locations import ComparisonPoint, get_locations
 from collectors.open_meteo import fetch_current_weather as fetch_open_meteo
 from collectors.openweather import fetch_current_weather as fetch_openweather
+from collectors.tomorrow_io import fetch_current_weather as fetch_tomorrow_io
+from collectors.visual_crossing import fetch_current_weather as fetch_visual_crossing
 
 
 def _floor_target_time(current_time: datetime) -> datetime:
@@ -28,6 +30,20 @@ def _print_record(record: dict[str, Any], *, save_status: str) -> None:
         f"precipitation_value={record['precipitation_value']} "
         f"precipitation_window_min={record['precipitation_window_min']} "
         f"success={record['success']}"
+    )
+
+
+def _print_missing_api_key(
+    source: str,
+    point: ComparisonPoint,
+    target_time: datetime,
+    env_name: str,
+) -> None:
+    print(
+        f"source={source} save_status=not_attempted city={point.city} "
+        f"point_role={point.point_role} target_time={target_time.isoformat()} "
+        f"fetch_failed error_type=missing_api_key: "
+        f"{env_name} is not set in the local .env file."
     )
 
 
@@ -67,9 +83,12 @@ def main() -> None:
     ]
     db_path = init_database()
 
-    api_key = get_api_key("OPENWEATHER_API_KEY")
+    openweather_api_key = get_api_key("OPENWEATHER_API_KEY")
+    visual_crossing_api_key = get_api_key("VISUAL_CROSSING_API_KEY")
+    tomorrow_api_key = get_api_key("TOMORROW_API_KEY")
+
     for point in primary_points:
-        if api_key:
+        if openweather_api_key:
             _collect_and_save(
                 "openweather",
                 point,
@@ -77,7 +96,7 @@ def main() -> None:
                 lambda point=point: fetch_openweather(
                     lat=point.lat,
                     lon=point.lon,
-                    api_key=api_key,
+                    api_key=openweather_api_key,
                     city=point.city,
                     point_role=point.point_role,
                     target_time=target_time,
@@ -85,11 +104,11 @@ def main() -> None:
                 db_path,
             )
         else:
-            print(
-                f"source=openweather save_status=not_attempted city={point.city} "
-                f"point_role={point.point_role} target_time={target_time.isoformat()} "
-                "fetch_failed error_type=missing_api_key: "
-                "OPENWEATHER_API_KEY is not set in the local .env file."
+            _print_missing_api_key(
+                "openweather",
+                point,
+                target_time,
+                "OPENWEATHER_API_KEY",
             )
 
         _collect_and_save(
@@ -105,6 +124,52 @@ def main() -> None:
             ),
             db_path,
         )
+
+        if visual_crossing_api_key:
+            _collect_and_save(
+                "visual_crossing",
+                point,
+                target_time,
+                lambda point=point: fetch_visual_crossing(
+                    lat=point.lat,
+                    lon=point.lon,
+                    api_key=visual_crossing_api_key,
+                    city=point.city,
+                    point_role=point.point_role,
+                    target_time=target_time,
+                ),
+                db_path,
+            )
+        else:
+            _print_missing_api_key(
+                "visual_crossing",
+                point,
+                target_time,
+                "VISUAL_CROSSING_API_KEY",
+            )
+
+        if tomorrow_api_key:
+            _collect_and_save(
+                "tomorrow_io",
+                point,
+                target_time,
+                lambda point=point: fetch_tomorrow_io(
+                    lat=point.lat,
+                    lon=point.lon,
+                    api_key=tomorrow_api_key,
+                    city=point.city,
+                    point_role=point.point_role,
+                    target_time=target_time,
+                ),
+                db_path,
+            )
+        else:
+            _print_missing_api_key(
+                "tomorrow_io",
+                point,
+                target_time,
+                "TOMORROW_API_KEY",
+            )
 
 
 if __name__ == "__main__":
